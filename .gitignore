@@ -1,0 +1,21 @@
+# virtualenv
+.env
+pyenv.cfg
+
+# node
+node_modules
+
+# secrets
+client_secret.json
+
+# artifacts
+bin
+all_videos.json
+reviews.csv
+reviews.json
+
+# misc
+.ipynb_checkpoints
+.spyproject
+.DS_Store
+
