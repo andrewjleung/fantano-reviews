@@ -4,6 +4,9 @@ import googleapiclient.discovery
 import googleapiclient.errors
 import json
 
+OUTTEXT = True
+OUTPUT_FILE = "./bin/all_videos.json"
+
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 
 # Disable OAuthlib's HTTPS verification when running locally.
@@ -21,23 +24,20 @@ theneedledrop_uploads_playlist_id = "UUt7fwAhXDy3oNFTAzF2o8Pw"
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=api_key)
 
-results = {}
+def get_all_playlist_videos():
+    if OUTTEXT:
+        print("Fetching all Fantano videos...")
 
-request = youtube.playlistItems().list(
-    part="contentDetails,snippet",
-    playlistId=theneedledrop_uploads_playlist_id,
-    maxResults=50
-)
-response = request.execute()
+    # First page request.
+    request = youtube.playlistItems().list(
+        part="contentDetails,snippet",
+        playlistId=theneedledrop_uploads_playlist_id,
+        maxResults=50
+    )
+    response = request.execute()
+    items = response["items"]
 
-
-def get_all_playlist_videos(init, nextPageToken):
-    items = init
-    response = {"nextPageToken": nextPageToken}
-
-    if nextPageToken is None:
-        return init
-
+    # Request all subsequent pages and accumulate the results.
     while("nextPageToken" in response):
         request = youtube.playlistItems().list(
             part="contentDetails,snippet",
@@ -47,15 +47,18 @@ def get_all_playlist_videos(init, nextPageToken):
         )
 
         response = request.execute()
-
-        items.append(response["items"])
+        items = items + response["items"]
 
     return items
 
+# Get all videos.
+items = get_all_playlist_videos()
 
-items = get_all_playlist_videos(response["items"], response["nextPageToken"])
+if OUTTEXT:
+    print(f"{len(items)} videos fetched.")
+    print(f"Outputting data to {OUTPUT_FILE}")
 
-filename = "./bin/all_videos.json"
-os.makedirs(os.path.dirname(filename), exist_ok=True)
-with open(filename, "w") as f:
+# Write the result to an output file.
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+with open(OUTPUT_FILE, "w") as f:
     f.write(json.dumps(items))
