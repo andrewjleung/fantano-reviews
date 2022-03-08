@@ -1,5 +1,5 @@
 make:
-	./reviews.sh
+	virtualenv .env && source .env/bin/activate && pip install -r requirements.txt
 
 clean: 
-	rm -rf ./fantano-fetch/bin .env && rm -f pyvenv.cfg
+	rm -rf *__pycache__ .env && rm -f pyvenv.cfg
