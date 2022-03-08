@@ -18,4 +18,6 @@ reviews.json
 .ipynb_checkpoints
 .spyproject
 .DS_Store
+.vscode
+__pycache__
 
