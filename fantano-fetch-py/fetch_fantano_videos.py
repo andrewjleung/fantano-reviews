@@ -3,7 +3,6 @@ Script for fetching Anthony Fantano videof rom the YouTube API.
 '''
 import os
 import json
-import sys
 import googleapiclient.discovery
 import googleapiclient.errors
 
@@ -16,13 +15,16 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
 CLIENT_SECRETS_FILE = "client_secret.json"
-API_KEY = "AIzaSyDzzAIzkZlkyZqoJ3_BO4PdsS98pnU5irA"
+
+API_KEY_FILENAME = "./apikey.json"
+api_key_file = open(API_KEY_FILENAME, 'r', encoding="utf-8")
+api_key = json.load(api_key_file)
 
 THENEEDLEDROP_ID = "UCt7fwAhXDy3oNFTAzF2o8Pw"
 THENEEDLEDROP_PLAYLIST_ID = "UUt7fwAhXDy3oNFTAzF2o8Pw"
 
 youtube = googleapiclient.discovery.build(
-    API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
+    API_SERVICE_NAME, API_VERSION, developerKey=api_key)
 
 
 def fetch_all_playlist_videos(outtext=True):

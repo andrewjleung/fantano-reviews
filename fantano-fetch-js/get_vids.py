@@ -16,13 +16,17 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 api_service_name = "youtube"
 api_version = "v3"
 client_secrets_file = "client_secret.json"
-api_key = "AIzaSyDzzAIzkZlkyZqoJ3_BO4PdsS98pnU5irA"
+api_key_filename = "./apikey.json"
+
+api_key_file = open(api_key_filename, 'r', encoding="utf-8")
+api_key = json.load(api_key_file)
 
 theneedledrop_id = "UCt7fwAhXDy3oNFTAzF2o8Pw"
 theneedledrop_uploads_playlist_id = "UUt7fwAhXDy3oNFTAzF2o8Pw"
 
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=api_key)
+
 
 def get_all_playlist_videos():
     if OUTTEXT:
@@ -50,6 +54,7 @@ def get_all_playlist_videos():
         items = items + response["items"]
 
     return items
+
 
 # Get all videos.
 items = get_all_playlist_videos()
