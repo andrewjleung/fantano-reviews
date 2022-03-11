@@ -12,6 +12,7 @@ CLIENT_SECRETS_FILE = "client_secret.json"
 THENEEDLEDROP_ID = "UCt7fwAhXDy3oNFTAzF2o8Pw"
 THENEEDLEDROP_PLAYLIST_ID = "UUt7fwAhXDy3oNFTAzF2o8Pw"
 
+
 def fetch_all_playlist_videos(api_key, outtext=True):
     ''' Function:   fetch_all_playlist_videos
         Parameters: api_key, string, the YouTube API v3 key to use
@@ -22,7 +23,7 @@ def fetch_all_playlist_videos(api_key, outtext=True):
         API_SERVICE_NAME, API_VERSION, developerKey=api_key)
 
     if outtext:
-        print("Fetching all theneedledrop videos.")
+        print("Fetching all theneedledrop videos...")
 
     # Get the number of videos.
     request = youtube.playlists().list(
