@@ -2,18 +2,14 @@
 .env
 pyenv.cfg
 
-# node
-node_modules
-
 # secrets
-client_secret.json
-apikey.json
+api_key.json
 
 # artifacts
-bin
-all_videos.json
-reviews.csv
-reviews.json
+# data
+# all_videos.json
+# reviews.csv
+# reviews.json
 
 # misc
 .ipynb_checkpoints
