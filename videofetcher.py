@@ -68,8 +68,8 @@ class VideoFetcher:
 
         # Request all subsequent pages and accumulate the results.
         while next_page_token is not None:
-            new_items, next_page_token = self.fetch_playlist_page(
-                next_page_token)
+            new_items, next_page_token = self.fetch_playlist_page(playlist_id,
+                                                                  next_page_token)
             items += new_items
 
             if self.debug:
