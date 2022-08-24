@@ -176,8 +176,8 @@ def get_artist_and_title(video_title):
     return (artist, title)
 
 
-def get_review_data(video):
-    """ Function:   get_review_data
+def parse_review(video):
+    """ Function:   parse_review
         Parameters: video, dict containing video metadata
         Returns:    dict, a cleaned, flattened dict of review metadata
     """
@@ -205,7 +205,6 @@ def parse_reviews(videos):
         Parameters: videos, list of dict containing all theneedledrop videos
         Returns:    list of dict, a list of all parser reviews
     """
-    return sorted([get_review_data(video) for video in videos if is_review(video)],
+    return sorted([parse_review(video) for video in videos if is_review(video)],
                   key=lambda r: datetime.strptime(
-        r["publishedAt"], ISO8601_FORMAT),
-        reverse=True)
+        r["publishedAt"], ISO8601_FORMAT))

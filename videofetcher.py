@@ -6,43 +6,42 @@ from googleapiclient.discovery import build
 
 API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
-CLIENT_SECRETS_FILE = "client_secret.json"
 MAX_PAGE_SIZE = 50
 
 
-class PlaylistFetcher:
+class VideoFetcher:
     """
-    Class used to fetch videos in a YouTube playlist.
+    Class used to fetch YouTube videos from the YouTube Data API.
     """
 
-    def __init__(self, api_key, playlist_id, debug=False):
+    def __init__(self, api_key, debug=False):
         self.resource = build(
             API_SERVICE_NAME, API_VERSION, developerKey=api_key)
-        self.playlist_id = playlist_id
         self.debug = debug
 
-    def fetch_num_videos(self):
-        """ Function:   fetch_num_videos
-            Parameters: None
+    def fetch_num_playlist_videos(self, playlist_id):
+        """ Function:   fetch_num_playlist_videos
+            Parameters: playlist_id, the ID of the playlist to fetch from
             Returns:    int, the number of videos in this playlist.
         """
         request = self.resource.playlists().list(
             part="contentDetails",
-            id=self.playlist_id
+            id=playlist_id
         )
         response = request.execute()
         return response["items"][0]["contentDetails"]["itemCount"]
 
-    def fetch_page(self, page_token=None):
-        """ Function:   fetch_page
-            Parameters: page_token, string if specifying a page to fetch, None
-                        if fetching the first page
+    def fetch_playlist_page(self, playlist_id, page_token=None):
+        """ Function:   fetch_playlist_page
+            Parameters: playlist_id, the ID of the playlist to fetch from
+                        page_token, string if specifying a page to fetch, None
+                            if fetching the first page
             Returns:    (items, next_page_token), the items in the page and a
                         next_page_token if there is one
         """
         request = self.resource.playlistItems().list(
             part="contentDetails,snippet",
-            playlistId=self.playlist_id,
+            playlistId=playlist_id,
             pageToken=page_token,
             maxResults=MAX_PAGE_SIZE
         )
@@ -50,26 +49,27 @@ class PlaylistFetcher:
         items = response["items"]
         return (items, response.get("nextPageToken", None))
 
-    def fetch_all_videos(self):
-        """ Function: fetch_all_videos
+    def fetch_all_playlist_videos(self, playlist_id):
+        """ Function: fetch_all_playlist_videos
             Parameters: api_key, string, the YouTube API v3 key to use
-                        debug, whether to print status information
+                        playlist_id, the ID of the playlist to fetch from
             Returns: list of dict, list of metadata dictionaries for all videos
         """
         if self.debug:
             print("Fetching all theneedledrop videos...")
 
-        num_videos = self.fetch_num_videos()
+        num_videos = self.fetch_num_playlist_videos(playlist_id)
 
         # Request the first page.
-        items, next_page_token = self.fetch_page()
+        items, next_page_token = self.fetch_playlist_page(playlist_id)
 
         if self.debug:
             print(f"{len(items)}/{num_videos} videos fetched...", end='\r')
 
         # Request all subsequent pages and accumulate the results.
         while next_page_token is not None:
-            new_items, next_page_token = self.fetch_page(next_page_token)
+            new_items, next_page_token = self.fetch_playlist_page(
+                next_page_token)
             items += new_items
 
             if self.debug:
@@ -77,3 +77,19 @@ class PlaylistFetcher:
                       end='\r')
 
         return items
+
+    def fetch_video(self, id):
+        """ Function:   fetch_video
+            Parameters: id, the ID of the video to fetch
+            Returns:    dict, video metadata
+        """
+        request = self.resource.videos().list(
+            part="contentDetails,snippet",
+            id=id
+        )
+        response = request.execute()
+
+        if len(response["items"]) < 1:
+            return None
+
+        return response["items"][0]

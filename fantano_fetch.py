@@ -5,7 +5,7 @@ import argparse
 import json
 import os
 import csv
-from playlistfetcher import PlaylistFetcher
+from videofetcher import VideoFetcher
 from reviewparser import parse_reviews
 
 DATA = './data'
@@ -15,7 +15,6 @@ YTV3_API_KEY_FILENAME = "./api_key.json"
 
 API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
-CLIENT_SECRETS_FILE = "client_secret.json"
 
 THENEEDLEDROP_ID = "UCt7fwAhXDy3oNFTAzF2o8Pw"
 THENEEDLEDROP_PLAYLIST_ID = "UUt7fwAhXDy3oNFTAzF2o8Pw"
@@ -38,12 +37,13 @@ def parse_args():
 def fetch_and_write_videos(videos_filename, playlist_fetcher, debug=False):
     """ Function: fetch_and_write_videos
         Parameters: videos_filename, the file to output video metadata to
-                    playlist_fetcher, PlaylistFetcher used to fetch videos
+                    playlist_fetcher, VideoFetcher used to fetch videos
                     debug, whether to print debug information
         Returns: None
     """
     # Get all videos.
-    items = playlist_fetcher.fetch_all_videos()
+    items = playlist_fetcher.fetch_all_playlist_videos(
+        THENEEDLEDROP_PLAYLIST_ID)
 
     if debug:
         print(f"{len(items)} videos fetched from YouTube API.")
@@ -82,7 +82,7 @@ def write_review_dataset_csv(videos_filename, csv_filename, debug=True):
 with open(YTV3_API_KEY_FILENAME, 'r', encoding="utf-8") as api_key_file:
     args = parse_args()
     api_key = json.load(api_key_file)
-    fetcher = PlaylistFetcher(api_key, THENEEDLEDROP_PLAYLIST_ID, args.debug)
+    fetcher = VideoFetcher(api_key, args.debug)
 
     if args.fetch:
         fetch_and_write_videos(VIDEOS_FILENAME, fetcher, args.debug)
