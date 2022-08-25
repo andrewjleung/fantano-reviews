@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "pm2 start server.js --name tndsub --cron \"0 0 * * *\"",
+    "start": "npx pm2 start server.js --name tndsub --cron \"0 0 * * *\"",
     "stop": "pm2 stop tndsub",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
