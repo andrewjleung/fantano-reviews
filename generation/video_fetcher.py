@@ -50,7 +50,7 @@ class VideoFetcher:
         return (items, response.get("nextPageToken", None))
 
     def fetch_all_playlist_videos(self, playlist_id):
-        """ Function: fetch_all_playlist_videos
+        """ Function:   fetch_all_playlist_videos
             Parameters: api_key, string, the YouTube API v3 key to use
                         playlist_id, the ID of the playlist to fetch from
             Returns: list of dict, list of metadata dictionaries for all videos

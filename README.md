@@ -19,13 +19,13 @@ called `api_key.json` inside the `fantano-fetch` directory.
 After this, run `make` to create the project's virtual environment. Then, source the environment yourself with the following:
 
 ```bash
-source ./.venv/bin/activate
+source ./generation/.venv/bin/activate
 ```
 
 Finally, you can fetch and generate an updated review dataset with the following command:
 
 ```python
-python3 fantano_fetch.py -f -d
+python3 generation/fantano_fetch.py -f -d
 ```
 
 ## Future Plans
