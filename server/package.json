@@ -1,0 +1,19 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "pm2 start server.js --name tndsub --cron \"0 0 * * *\"",
+    "stop": "pm2 stop tndsub",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "pubsubhubbub": "^1.0.1"
+  }
+}

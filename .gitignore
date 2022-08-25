@@ -19,3 +19,5 @@ api_key.json
 __pycache__
 submission
 
+# node
+node_modules
