@@ -30,4 +30,4 @@ python3 fantano_fetch.py -f -d
 
 ## Future Plans
 
-I plan to somehow turn this script into a consistently running service, since there doesn't seem to be anyone maintaining an up-to-date dataset of Fantano's reviews. Allowing people to look through this data in their own interesting ways would be pretty darn swell.
+I plan to somehow turn this script into a consistently running service which keeps the dataset constantly updated, since there doesn't seem to be anyone maintaining an up-to-date dataset of Fantano's reviews. Allowing people to look through this data in their own interesting ways would be pretty darn swell.
