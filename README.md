@@ -4,7 +4,7 @@ This is a project originally for DS2500 at NEU, encompassing the creation and an
 music reviews with ratings by Anthony Fantano
 ([theneedledrop](https://www.youtube.com/user/theneedledrop)) on YouTube.
 
-This contains a cached dataset of videos fetched on 08/24/2022, which has already been processed
+This contains a cached dataset of videos fetched on 08/25/2022, which has already been processed
 into a CSV.
 
 You can open `fantano_genre.ipynb` within Jupyter Notebook which will make use of this dataset
