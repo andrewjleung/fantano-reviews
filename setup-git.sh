@@ -1,6 +1,7 @@
 #!/bin/sh
 
 eval "$(ssh-agent -s)"
+echo "" >> /etc/secrets/id_ed25519
 ssh-add /etc/secrets/id_ed25519
 
 GIT=`which git`
