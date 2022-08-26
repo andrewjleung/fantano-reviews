@@ -18,45 +18,35 @@ const videoIds = new Set(
 const subscriber = createServer({});
 const parser = new XMLParser();
 
-// subscriber.subscribe(TOPIC, HUB, CALLBACK_URL, () => {
-//   console.log('subscribed!');
-// });
-
-// // TODO: Log this in a more organized way.
-// subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
-//   console.log('Notification received!');
-//   console.log(feed.toString());
-
-//   const notification = parser.parse(feed);
-//   const maybeVideoId = notification.feed?.entry?.['yt:videoId'];
-
-//   if (!maybeVideoId) {
-//     console.log(`Failed to access video ID in notification: ${notification}`);
-//     return;
-//   }
-
-//   if (videoIds.has(maybeVideoId)) {
-//     console.log(`Video ${maybeVideoId} has already been added.`);
-//     return;
-//   }
-
-//   console.log(`Adding video ${maybeVideoId} to the dataset.`);
-//   const addReview = spawn('../scripts/add-review.sh', [maybeVideoId]);
-
-//   addReview.on('exit', () => {
-//     console.log('Committing changes to the dataset.');
-//     spawn('../scripts/commit.sh');
-//   });
-// });
-
-// subscriber.listen(PORT);
-
-const maybeVideoId = '645qisC4slI';
-
-console.log(`Adding video ${maybeVideoId} to the dataset.`);
-const addReview = spawn('../scripts/add-review.sh', [maybeVideoId]);
-
-addReview.on('exit', () => {
-  console.log('Committing changes to the dataset.');
-  spawn('../scripts/commit.sh');
+subscriber.subscribe(TOPIC, HUB, CALLBACK_URL, () => {
+  console.log('subscribed!');
 });
+
+// TODO: Log this in a more organized way.
+subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
+  console.log('Notification received!');
+  console.log(feed.toString());
+
+  const notification = parser.parse(feed);
+  const maybeVideoId = notification.feed?.entry?.['yt:videoId'];
+
+  if (!maybeVideoId) {
+    console.log(`Failed to access video ID in notification: ${notification}`);
+    return;
+  }
+
+  if (videoIds.has(maybeVideoId)) {
+    console.log(`Video ${maybeVideoId} has already been added.`);
+    return;
+  }
+
+  console.log(`Adding video ${maybeVideoId} to the dataset.`);
+  const addReview = spawn('../scripts/add-review.sh', [maybeVideoId]);
+
+  addReview.on('exit', () => {
+    console.log('Committing changes to the dataset.');
+    spawn('../scripts/commit.sh');
+  });
+});
+
+subscriber.listen(PORT);
