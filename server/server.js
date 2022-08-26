@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 
 const PORT = 3000;
 
+const MAX_LEASE_S = 828000;
 const THENEEDLEDROP_ID = 'UCt7fwAhXDy3oNFTAzF2o8Pw';
 const TOPIC = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${THENEEDLEDROP_ID}`;
 const HUB = 'https://pubsubhubbub.appspot.com/subscribe';
@@ -15,17 +16,28 @@ const videoIds = new Set(
   allVideos.map((video) => video.contentDetails.videoId),
 );
 
-const subscriber = createServer({});
+const subscriber = createServer({
+  leaseSeconds: MAX_LEASE_S,
+});
 const parser = new XMLParser();
 
-subscriber.subscribe(TOPIC, HUB, CALLBACK_URL, () => {
-  console.log('subscribed!');
-});
+const subscribe = () => {
+  subscriber.subscribe(TOPIC, HUB, CALLBACK_URL, () => {
+    console.log('subscribed!');
+  });
+};
+
+subscribe();
 
 // TODO: Log this in a more organized way.
 subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
   console.log('Notification received!');
   console.log(feed.toString());
+
+  // Resubscribe. Trusting that Fantano uploads more frequently than the max
+  // lease length, this will stay subscribed. Obviously, a cron job of some
+  // sort or regularly restarting the server will do a better job here.
+  subscribe();
 
   const notification = parser.parse(feed);
   const maybeVideoId = notification.feed?.entry?.['yt:videoId'];
