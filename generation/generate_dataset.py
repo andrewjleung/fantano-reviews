@@ -1,6 +1,6 @@
-'''
+"""
 Script to fetch Anthony Fantano reviews.
-'''
+"""
 import argparse
 import json
 import csv
@@ -8,9 +8,8 @@ from cache import Cache
 from video_fetcher import VideoFetcher
 from review_parser import parse_reviews
 
-DATA = './data'
-VIDEOS_FILENAME = f'{DATA}/all_videos.json'
-REVIEWS_FILENAME = f'{DATA}/reviews.csv'
+VIDEOS_FILENAME = './all_videos.json'
+REVIEWS_FILENAME = './reviews.csv'
 YTV3_API_KEY_FILENAME = "./api_key.json"
 
 API_SERVICE_NAME = "youtube"
@@ -56,13 +55,12 @@ def write_review_dataset_csv(videos, csv_filename, debug=True):
         dict_writer.writerows(reviews)
 
 
-if __name__ == "main":
-    with open(YTV3_API_KEY_FILENAME, 'r', encoding="utf-8") as api_key_file:
-        args = parse_args()
-        api_key = json.load(api_key_file)
-        fetcher = VideoFetcher(api_key, args.debug)
+with open(YTV3_API_KEY_FILENAME, 'r', encoding="utf-8") as api_key_file:
+    args = parse_args()
+    api_key = json.load(api_key_file)
+    fetcher = VideoFetcher(api_key, args.debug)
 
-        cached_videos = Cache(VIDEOS_FILENAME, lambda: fetcher.fetch_all_playlist_videos(
-            THENEEDLEDROP_PLAYLIST_ID), not args.fetch).get()
+    cached_videos = Cache(VIDEOS_FILENAME, lambda: fetcher.fetch_all_playlist_videos(
+        THENEEDLEDROP_PLAYLIST_ID), not args.fetch).get()
 
-        write_review_dataset_csv(cached_videos, REVIEWS_FILENAME, args.debug)
+    write_review_dataset_csv(cached_videos, REVIEWS_FILENAME, args.debug)

@@ -18,6 +18,7 @@ api_key.json
 .vscode
 __pycache__
 submission
+tnd-reviews
 
 # node
 node_modules

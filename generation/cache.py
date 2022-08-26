@@ -5,8 +5,8 @@ from os.path import exists
 
 class Cache():
     """
-    Class for caching computations. Provides a means to retrieve the result of a 
-    computation either from a cache if it exists or by running the computation, 
+    Class for caching computations. Provides a means to retrieve the result of a
+    computation either from a cache if it exists or by running the computation,
     caching the result as a side effect.
     """
 
@@ -23,8 +23,9 @@ class Cache():
         pass
 
     def get(self):
-        """ Function:   get Parameters: none 
-            Return:     any, the result of this Cache's computation if no cache 
+        """ Function:   get
+            Parameters: None
+            Return:     any, the result of this Cache's computation if no cache
                             exists or the cache if it does
         """
         if exists(self.cache_path) and self.use_cache:
@@ -38,4 +39,4 @@ class Cache():
                 return result
             except Exception as exception:
                 os.remove(self.cache_path)
-                raise 
+                raise
