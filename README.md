@@ -20,7 +20,7 @@ source ./generation/.venv/bin/activate
 Finally, you can fetch and generate an updated review dataset with the following command:
 
 ```python
-python3 generation/generate_dataset.py -f -d
+python3 ./generation/generate_dataset.py -f -d
 ```
 
 ## Callback Server
