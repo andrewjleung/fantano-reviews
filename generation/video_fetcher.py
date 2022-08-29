@@ -78,14 +78,16 @@ class VideoFetcher:
 
         return items
 
-    def fetch_video(self, id):
+    def fetch_video(self, playlist_id, video_id):
         """ Function:   fetch_video
-            Parameters: id, the ID of the video to fetch
+            Parameters: playlistId, the ID of the channel's general playlist
+                        videoId, the ID of the video
             Returns:    dict, video metadata
         """
-        request = self.resource.videos().list(
+        request = self.resource.playlistItems().list(
             part="contentDetails,snippet",
-            id=id
+            playlistId=playlist_id,
+            videoId=video_id
         )
         response = request.execute()
 
