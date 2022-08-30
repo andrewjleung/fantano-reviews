@@ -12,11 +12,6 @@ const HUB = 'https://pubsubhubbub.appspot.com/subscribe';
 const CALLBACK_URL = 'https://tnd-sub.onrender.com';
 const NOT_REVIEW_ERR_CODE = 8;
 
-const allVideos = JSON.parse(fs.readFileSync('../tnd-reviews/all_videos.json'));
-const videoIds = new Set(
-  allVideos.map((video) => video.contentDetails.videoId),
-);
-
 const subscriber = createServer({
   leaseSeconds: MAX_LEASE_S,
 });
@@ -47,6 +42,26 @@ subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
       return;
     }
 
+    const spawnOptions = {
+      stdio: 'inherit',
+    };
+
+    console.log('Pulling latest dataset.');
+
+    const pullDataset = spawnSync('cd ../tnd-reviews && git pull');
+
+    if (pullDataset.status !== 0) {
+      console.error('An error occurred pulling the latest dataset.');
+      // Still try to add the review.
+    }
+
+    const allVideos = JSON.parse(
+      fs.readFileSync('../tnd-reviews/all_videos.json'),
+    );
+    const videoIds = new Set(
+      allVideos.map((video) => video.contentDetails.videoId),
+    );
+
     // The YouTube Data API publishes notifications to subscribers whenever
     // videos are uploaded or have their titles/descriptions modified. This
     // means that the same video may be received twice. These videos are
@@ -56,10 +71,6 @@ subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
       console.log(`Video ${maybeVideoId} has already been processed.`);
       return;
     }
-
-    const spawnOptions = {
-      stdio: 'inherit',
-    };
 
     console.log(`Attempting to parse review from video ${maybeVideoId}.`);
 
