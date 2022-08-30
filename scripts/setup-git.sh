@@ -21,6 +21,7 @@ ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 ssh-add gh_ssh_key
 
 GIT=`which git`
-${GIT} config --global user.email "andrewleung104@gmail.com"
-${GIT} config --global user.name "Andrew Leung"
 ${GIT} clone git@github.com:andrewjleung/tnd-reviews.git
+cd tnd-reviews
+${GIT} config user.name "Andrew Leung"
+${GIT} config user.email "andrewleung104@gmail.com"
