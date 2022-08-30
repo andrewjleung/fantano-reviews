@@ -15,7 +15,10 @@ echo "" >> gh_ssh_key
 chmod 600 gh_ssh_key
 
 # The VM doesn't have GitHub as a known host by default.
-ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+# https://serverfault.com/a/1098531
+curl --silent https://api.github.com/meta | \
+  python3 -c 'import json,sys;print(*["github.com " + x for x in json.load(sys.stdin)["ssh_keys"]], sep="\n")' \
+  >> ~/.ssh/known_hosts
 
 # Finally add the key so that the dataset can be pulled and modified.
 ssh-add gh_ssh_key
