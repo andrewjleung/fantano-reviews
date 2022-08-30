@@ -58,7 +58,7 @@ subscriber.on('feed', ({ topic, hub, callback, feed, headers }) => {
     }
 
     const spawnOptions = {
-      stdio: ['inherit', 'inherit', 'pipe'],
+      stdio: 'inherit',
     };
 
     console.log(`Attempting to parse review from video ${maybeVideoId}.`);
