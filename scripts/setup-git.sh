@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TOKEN=`cat etc/secrets/gh_pat`
+TOKEN=`cat gh_pat`
 GIT=`which git`
 ${GIT} clone https://github.com/andrewjleung/tnd-reviews.git
 cd tnd-reviews
