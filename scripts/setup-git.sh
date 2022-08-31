@@ -3,7 +3,7 @@
 eval "$(ssh-agent -s)"
 
 touch ~/.ssh/id_ed25519
-toucn ~/.ssh/id_ed25519.pub
+touch ~/.ssh/id_ed25519.pub
 cat /etc/secrets/id_ed25519 >> ~/.ssh/id_ed25519
 cat /etc/secrets/id_ed25519.pub >> ~/.ssh/id_ed25519.pub
 
