@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# TODO: This is an insecure way to go about authenticating with GItHub.
+# Ideally I should be using SSH but getting the proper credentials setup in
+# the deploy environment is quite difficult. This works for now.
 TOKEN=`cat gh_pat`
 GIT=`which git`
 ${GIT} clone https://github.com/andrewjleung/tnd-reviews.git
