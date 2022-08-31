@@ -1,5 +1,5 @@
 """
-Script for fetching Anthony Fantano videof rom the YouTube API.
+Script for fetching Anthony Fantano video from the YouTube API.
 """
 from googleapiclient.discovery import build
 
