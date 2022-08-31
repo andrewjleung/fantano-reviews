@@ -27,6 +27,8 @@ curl --silent https://api.github.com/meta | \
 # Finally add the key so that the dataset can be pulled and modified.
 ssh-add ~/.ssh/id_ed25519
 
+ssh -T git@github.com
+
 GIT=`which git`
 ${GIT} clone git@github.com:andrewjleung/tnd-reviews.git
 cd tnd-reviews
