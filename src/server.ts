@@ -92,15 +92,18 @@ const pullLatestDataset = (): Either<Error, typeof Nothing> => {
   return Right(Nothing);
 };
 
-const checkForDuplicateVideo = (videoId: string): Either<Error, string> => {
+const checkForDuplicateVideo = (
+  videoId: string,
+  videosFilename: string,
+): Either<Error, string> => {
   const allVideoIds = JSON.parse(
-    readFileSync('./tnd-reviews/all_videos.json', 'utf-8'),
+    readFileSync(`./tnd-reviews/${videosFilename}`, 'utf-8'),
   );
 
   if (!Array.isArray(allVideoIds)) {
     return Left(
       Error(
-        'Video ids are not in an array. Please check the `all_videos.json` file.',
+        `Video ids are not in an array. Please check the \`${videosFilename}\` file.`,
       ),
     );
   }
@@ -184,7 +187,7 @@ notifier.on('notified', (data) => {
     EitherAsync.liftEither(
       pullLatestDataset()
         .map(always(data.video.id))
-        .chain(checkForDuplicateVideo),
+        .chain((videoId) => checkForDuplicateVideo(videoId, videosFilename)),
     )
       .chain(() => checkForReview(service, playlistId, data.video.id))
       .chain(() => generateDatasets(service, videosFilename, reviewsFilename))
