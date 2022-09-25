@@ -166,7 +166,7 @@ const secret = randomBytes(48).toString('hex');
 
 const notifier = new Notifier({
   hubCallback: callbackUrl,
-  // secret,
+  secret,
 });
 
 notifier.setup();
