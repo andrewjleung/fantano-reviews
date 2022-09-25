@@ -1,9 +1,10 @@
 import { youtube_v3 } from 'googleapis';
-import { Just, Maybe, MaybeAsync, NonEmptyList } from 'purify-ts';
+import { Just, List, Maybe, MaybeAsync } from 'purify-ts';
+import { maybeOf } from './purifyUtils';
 
 const MAX_PAGE_SIZE = 50;
 
-const getNumPlaylistVideos =
+export const getNumPlaylistVideos =
   (service: youtube_v3.Youtube) =>
   async (playlistId: string): Promise<Maybe<number>> => {
     const response = await service.playlists.list(
@@ -14,9 +15,8 @@ const getNumPlaylistVideos =
       {},
     );
 
-    return Maybe.fromNullable(response.data.items)
-      .chain(NonEmptyList.fromArray)
-      .map(NonEmptyList.head)
+    return maybeOf(response.data.items)
+      .chain(List.head)
       .chainNullable((value) => value.contentDetails?.itemCount);
   };
 
@@ -40,9 +40,9 @@ const getPlaylistPage =
       {},
     );
 
-    return Maybe.fromNullable(response.data.items).map((items) => ({
+    return maybeOf(response.data.items).map((items) => ({
       items,
-      maybeNextPageToken: Maybe.fromNullable(response.data.nextPageToken),
+      maybeNextPageToken: maybeOf(response.data.nextPageToken),
     }));
   };
 
@@ -87,7 +87,5 @@ export const fetchVideo =
       videoId,
     });
 
-    return Maybe.fromNullable(response.data.items)
-      .chain(NonEmptyList.fromArray)
-      .map(NonEmptyList.head);
+    return maybeOf(response.data.items).chain(List.head);
   };
