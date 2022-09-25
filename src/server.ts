@@ -1,12 +1,19 @@
 import Notifier from '@daangamesdg/youtube-notifications';
 import { randomBytes } from 'crypto';
 import { readFileSync } from 'fs';
-import { spawnSync, SpawnSyncOptionsWithStringEncoding } from 'child_process';
+import {
+  spawnSync,
+  SpawnSyncOptionsWithStringEncoding,
+  SpawnSyncReturns,
+} from 'child_process';
 import { always, Either, EitherAsync, Left, Nothing, Right } from 'purify-ts';
 import dotenv from 'dotenv';
 import { bindFalsyToEither } from './purifyUtils';
 import { generateDatasets } from './datasetGenerator';
 import { getAPIKey, getService } from './auth';
+import { youtube_v3 } from 'googleapis';
+import { getVideo } from './videoFetcher';
+import { isReview } from './reviewParser';
 
 dotenv.config();
 
@@ -14,6 +21,7 @@ const getConfig = (): Either<
   Error,
   {
     channelId: string;
+    playlistId: string;
     callbackUrl: string;
     videosFilename: string;
     reviewsFilename: string;
@@ -25,6 +33,13 @@ const getConfig = (): Either<
         'channelId',
         process.env.THENEEDLEDROP_CHANNEL_ID,
         Error('Missing env variable "THENEEDLEDROP_CHANNEL_ID".'),
+      ),
+    )
+    .chain(
+      bindFalsyToEither(
+        'playlistId',
+        process.env.THENEEDLEDROP_PLAYLIST_ID,
+        Error('Missing env variable "THENEEDLEDROP_PLAYLIST_ID".'),
       ),
     )
     .chain(
@@ -54,6 +69,9 @@ const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
   stdio: 'inherit',
 };
 
+const logChild = (child: SpawnSyncReturns<string>) =>
+  JSON.stringify(child, null, 2);
+
 const pullLatestDataset = (): Either<Error, typeof Nothing> => {
   console.log('Pulling latest changes to datasets.');
   const child = spawnSync('git', ['pull'], {
@@ -64,10 +82,8 @@ const pullLatestDataset = (): Either<Error, typeof Nothing> => {
   if (child.status !== 0) {
     return Left(
       Error(
-        `An error occurred pulling latest changes for the dataset:\n${JSON.stringify(
+        `An error occurred pulling latest changes for the dataset:\n${logChild(
           child,
-          null,
-          2,
         )}`,
       ),
     );
@@ -103,6 +119,22 @@ const checkForDuplicateVideo = (videoId: string): Either<Error, string> => {
   return Right(videoId);
 };
 
+const checkForReview = async (
+  service: youtube_v3.Youtube,
+  playlistId: string,
+  videoId: string,
+): Promise<Either<Error, typeof Nothing>> => {
+  const video = await getVideo(service)(playlistId, videoId);
+
+  return video
+    .map(isReview)
+    .chain((isReview) =>
+      isReview
+        ? Right(Nothing)
+        : Left(Error(`Video ${videoId} is not a review.`)),
+    );
+};
+
 const commitChanges = (): Either<Error, typeof Nothing> => {
   console.log('Committing changes to datasets.');
   const child = spawnSync('./scripts/commit.sh', spawnOptions);
@@ -110,7 +142,9 @@ const commitChanges = (): Either<Error, typeof Nothing> => {
   if (child.status !== 0) {
     return Left(
       Error(
-        `An error occurred committing changes to the dataset: ${child.stderr}`,
+        `An error occurred committing changes to the dataset:\n${logChild(
+          child,
+        )}`,
       ),
     );
   }
@@ -125,7 +159,7 @@ const commitChanges = (): Either<Error, typeof Nothing> => {
 // worrying about things like duplicates, git conflicts, etc., this seems like
 // the easier approach for now.
 
-const { channelId, callbackUrl, videosFilename, reviewsFilename } =
+const { channelId, playlistId, callbackUrl, videosFilename, reviewsFilename } =
   getConfig().unsafeCoerce();
 const service = getAPIKey().map(getService).unsafeCoerce();
 const secret = randomBytes(48).toString('hex');
@@ -152,6 +186,7 @@ notifier.on('notified', (data) => {
         .map(always(data.video.id))
         .chain(checkForDuplicateVideo),
     )
+      .chain(() => checkForReview(service, playlistId, data.video.id))
       .chain(() => generateDatasets(service, videosFilename, reviewsFilename))
       .chain(() => EitherAsync.liftEither(commitChanges()))
       .run()
