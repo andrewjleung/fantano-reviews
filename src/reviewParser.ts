@@ -1,6 +1,6 @@
 import { youtube_v3 } from 'googleapis';
-import { Just, List, Maybe, NonEmptyList, Nothing } from 'purify-ts';
-import { bind, maybeOf } from './purifyUtils';
+import { Either, Just, List, Maybe, Nothing, Right } from 'purify-ts';
+import { bindM, bindE, bindNullableToEither, maybeOf } from './purifyUtils';
 import { Review } from './types';
 
 // This album has two "reviews" with the same title but different ratings.
@@ -120,8 +120,8 @@ const isOldReview = (videoTitle: string): boolean =>
  */
 export const isReview = (video: youtube_v3.Schema$PlaylistItem): boolean =>
   Just({})
-    .chain(bind('title', () => maybeOf(video.snippet?.title)))
-    .chain(bind('description', () => maybeOf(video.snippet?.description)))
+    .chain(bindM('title', () => maybeOf(video.snippet?.title)))
+    .chain(bindM('description', () => maybeOf(video.snippet?.description)))
     .map(({ title, description }) => {
       if (IGNORED_REVIEWS.includes(title)) {
         return false;
@@ -139,16 +139,15 @@ export const isReview = (video: youtube_v3.Schema$PlaylistItem): boolean =>
  * @param description the description of a review video
  * @returns the rating of the review if present within the video description
  */
-const getRating = (description: string): Maybe<number> =>
+const getRating = (description: string): Either<Error, number> =>
   maybeOf(description.match(RATING_REGEX))
-    .chain((matchArray) => {
-      if (matchArray.length < 2) {
-        return Nothing;
-      }
-
-      return Just(matchArray[1]);
-    })
-    .chain((ratingString) => Maybe.encase(() => Number.parseInt(ratingString)));
+    .chain(List.at(1))
+    .chain((ratingString) => Maybe.encase(() => Number.parseInt(ratingString)))
+    .toEither(
+      Error(
+        `Unable to parse rating from video review description: ${description}`,
+      ),
+    );
 
 /**
  * Parse genres from the given video review description.
@@ -178,19 +177,45 @@ const getGenres = (description: string): string[] => {
  */
 const getArtistAndTitle = (
   videoTitle: string,
-): Maybe<{ artist: string; title: string }> => {
+): Either<Error, { artist: string; title: string }> => {
   const maybeEdgeCase = EDGE_CASES.get(videoTitle);
 
   if (maybeEdgeCase !== undefined) {
-    return Just(maybeEdgeCase);
+    return Right(maybeEdgeCase);
   }
 
-  const maybeMatch = maybeOf(videoTitle.match(ARTIST_TITLE_REGEX));
+  const eitherMatchesOrError = maybeOf(
+    videoTitle.match(ARTIST_TITLE_REGEX),
+  ).toEither(
+    Error('Unable to match title and artist within review video title.'),
+  );
 
-  return maybeMatch
-    .chain(List.at(1))
-    .chain((artist) =>
-      maybeMatch.chain(List.at(2)).map((title) => ({ artist, title })),
+  return eitherMatchesOrError
+    .map((matches) => matches.filter((match) => match && match.length > 0))
+    .chain((matches) =>
+      Right(Nothing)
+        .chain(
+          bindE('artist', () =>
+            List.at(1, matches).toEither(
+              Error(
+                `Missing match for artist within review video title: ${matches}`,
+              ),
+            ),
+          ),
+        )
+        .chain(
+          bindE('title', () =>
+            List.at(2, matches).toEither(
+              Error(
+                `Missing match for title within review video title: ${matches}`,
+              ),
+            ),
+          ),
+        )
+        .map(({ artist, title }) => ({
+          artist: artist.trim(),
+          title: title.trim(),
+        })),
     );
 };
 
@@ -202,37 +227,59 @@ const getArtistAndTitle = (
  */
 export const parseReview = (
   video: youtube_v3.Schema$PlaylistItem,
-): Maybe<Review> =>
-  Just({})
-    .chain(bind('videoTitle', () => maybeOf(video.snippet?.title)))
-    .chain(bind('description', () => maybeOf(video.snippet?.description)))
-    .chain(({ videoTitle, description }) =>
-      Just({})
-        .chain(bind('publishedAt', () => maybeOf(video.snippet?.publishedAt)))
+): Either<Error, Review> =>
+  Right({})
+    .chain(
+      bindNullableToEither(
+        'videoTitle',
+        video.snippet?.title,
+        Error('No title found for review.'),
+      ),
+    )
+    .chain(
+      bindNullableToEither(
+        'description',
+        video.snippet?.description,
+        Error('No description found for review.'),
+      ),
+    )
+    .chain(
+      bindNullableToEither(
+        'publishedAt',
+        video.snippet?.publishedAt,
+        Error('No publishing date found for review.'),
+      ),
+    )
+    .chain(({ videoTitle, description, publishedAt }) =>
+      Right({ publishedAt })
         .chain((review) =>
           getArtistAndTitle(videoTitle).map((artistAndTitle) => ({
             ...review,
             ...artistAndTitle,
           })),
         )
-        .chain((review) =>
-          getRating(description).map((rating) => ({ ...review, rating })),
-        )
-        .map((review) => ({
-          ...review,
-          genres: getGenres(description).join(';'),
-        })),
+        .chain(bindE('rating', () => getRating(description)))
+        .chain(bindE('genres', () => Right(getGenres(description).join(';')))),
     );
 
 /**
- * Parse reviews from the given list of videos, review or not.
+ * Parse reviews from the given list of videos, review or not. Prints out
+ * information on any reviews that fail to be parsed.
  *
  * @param videos the videos to parse, can be a review or not
  * @returns an array containing all parsed reviews from the list
  */
 export const parseReviews = (
   videos: youtube_v3.Schema$PlaylistItem[],
-): Review[] =>
-  Maybe.catMaybes(videos.filter(isReview).map(parseReview)).sort(
+): Review[] => {
+  const parsedEitherReviewOrErrors = videos.filter(isReview).map(parseReview);
+
+  // Log any reviews which weren't successfully parsed.
+  Either.lefts(parsedEitherReviewOrErrors).forEach((e) =>
+    console.log(e.message),
+  );
+
+  return Either.rights(parsedEitherReviewOrErrors).sort(
     (a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt),
   );
+};
