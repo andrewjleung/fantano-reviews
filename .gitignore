@@ -4,12 +4,11 @@ pyenv.cfg
 
 # secrets
 api_key.json
+.env
 
 # artifacts
-# data
-# all_videos.json
-# reviews.csv
-# reviews.json
+all_videos.json
+reviews.csv
 
 # misc
 .ipynb_checkpoints
