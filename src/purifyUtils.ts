@@ -25,3 +25,10 @@ export const bindNullableToEither = <N extends string, A extends object, L, R>(
   error: L,
 ): ((acc: A) => Either<L, A & Record<N, R>>) =>
   bindE(name, () => maybeOf(nullable).toEither(error));
+
+export const bindFalsyToEither = <N extends string, A extends object, L, R>(
+  name: Exclude<N, keyof A>,
+  nullable: R | undefined | null,
+  error: L,
+): ((acc: A) => Either<L, A & Record<N, R>>) =>
+  bindE(name, () => Maybe.fromFalsy(nullable).toEither(error));

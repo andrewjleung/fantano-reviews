@@ -6,8 +6,8 @@ cd ./tnd-reviews
 ${GIT} pull
 cd ..
 
-source ./generation/.venv/bin/activate
-python3 ./generation/generate_dataset.py -f -d
+yarn install
+npx tsx ./src/generateDatasets.ts
 
 mv -f reviews.csv ./tnd-reviews
 mv -f all_videos.json ./tnd-reviews
