@@ -172,6 +172,10 @@ const notifier = new Notifier({
   secret,
 });
 
+// TODO: This is not very secure, but necessary in order to debug the server.
+// In the future, perhaps push this to a password manager.
+console.log(`Secret: ${secret}`);
+
 notifier.setup();
 
 notifier.on('notified', (data) => {
