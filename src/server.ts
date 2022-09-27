@@ -1,4 +1,3 @@
-import Notifier from '@daangamesdg/youtube-notifications';
 import { randomBytes } from 'crypto';
 import { readFileSync } from 'fs';
 import {
@@ -14,6 +13,7 @@ import { getAPIKey, getService } from './auth';
 import { youtube_v3 } from 'googleapis';
 import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
+import Notifier from '@daangamesdg/youtube-notifications';
 
 dotenv.config();
 
@@ -172,10 +172,6 @@ const notifier = new Notifier({
   secret,
 });
 
-// TODO: This is not very secure, but necessary in order to debug the server.
-// In the future, perhaps push this to a password manager.
-console.log(`Secret: ${secret}`);
-
 notifier.setup();
 
 notifier.on('notified', (data) => {
@@ -212,4 +208,16 @@ notifier.on('notified', (data) => {
   }
 });
 
+notifier.on('subscribe', () => {
+  console.log('Subscribed!');
+});
+
 notifier.subscribe(channelId);
+
+console.log(
+  `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
+    callbackUrl,
+  )}&hub.topic=${encodeURIComponent(
+    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
+  )}&hub.secret=${secret}`,
+);
