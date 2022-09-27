@@ -15,6 +15,8 @@ import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
 import Notifier from '@daangamesdg/youtube-notifications';
 
+const DEFAULT_PORT = 3000;
+
 dotenv.config();
 
 const getConfig = (): Either<
@@ -169,6 +171,7 @@ const secret = randomBytes(48).toString('hex');
 
 const notifier = new Notifier({
   hubCallback: callbackUrl,
+  port: Number(process.env.PORT || DEFAULT_PORT),
   secret,
 });
 
@@ -214,10 +217,10 @@ notifier.on('subscribe', () => {
 
 notifier.subscribe(channelId);
 
-// console.log(
-//   `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
-//     callbackUrl,
-//   )}&hub.topic=${encodeURIComponent(
-//     `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-//   )}&hub.secret=${secret}`,
-// );
+console.log(
+  `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
+    callbackUrl,
+  )}&hub.topic=${encodeURIComponent(
+    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
+  )}&hub.secret=${secret}`,
+);
