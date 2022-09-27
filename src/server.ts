@@ -214,10 +214,10 @@ notifier.on('subscribe', () => {
 
 notifier.subscribe(channelId);
 
-console.log(
-  `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
-    callbackUrl,
-  )}&hub.topic=${encodeURIComponent(
-    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-  )}&hub.secret=${secret}`,
-);
+// console.log(
+//   `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
+//     callbackUrl,
+//   )}&hub.topic=${encodeURIComponent(
+//     `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
+//   )}&hub.secret=${secret}`,
+// );
