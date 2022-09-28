@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "npx tsx ./src/server.ts",
-    "generate": "npx tsx ./src/generateDatasets.ts",
+    "generate-datasets": "npx tsx ./src/generateDatasets.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
