@@ -84,9 +84,8 @@ const logChild = (child: SpawnSyncReturns<string>) =>
 
 const cloneDataset = (ghPat: string): Either<Error, typeof Nothing> => {
   console.log('Setting up git and cloning dataset.');
-  const child = spawnSync('setup-git.sh', [ghPat], {
+  const child = spawnSync('./scripts/setup-git.sh', [ghPat], {
     ...spawnOptions,
-    cwd: './scripts',
   });
 
   if (child.status !== 0) {
