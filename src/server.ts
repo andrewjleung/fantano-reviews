@@ -15,7 +15,7 @@ import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
 import Notifier from '@daangamesdg/youtube-notifications';
 
-const DEFAULT_PORT = 3000;
+const DEFAULT_PORT = 8080;
 
 dotenv.config();
 
