@@ -27,6 +27,7 @@ const getConfig = (): Either<
     callbackUrl: string;
     videosFilename: string;
     reviewsFilename: string;
+    ghPat: string;
   }
 > =>
   Right({})
@@ -64,6 +65,13 @@ const getConfig = (): Either<
         process.env.REVIEWS_FILENAME,
         Error('Missing env variable "REVIEWS_FILENAME"'),
       ),
+    )
+    .chain(
+      bindFalsyToEither(
+        'ghPat',
+        process.env.GH_PAT,
+        Error('Missing env variable "GH_PAT"'),
+      ),
     );
 
 const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
@@ -73,6 +81,26 @@ const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
 
 const logChild = (child: SpawnSyncReturns<string>) =>
   JSON.stringify(child, null, 2);
+
+const cloneDataset = (ghPat: string): Either<Error, typeof Nothing> => {
+  console.log('Setting up git and cloning dataset.');
+  const child = spawnSync('setup-git.sh', [ghPat], {
+    ...spawnOptions,
+    cwd: './scripts',
+  });
+
+  if (child.status !== 0) {
+    return Left(
+      Error(
+        `An error occurred setting up git and cloning the dataset: ${logChild(
+          child,
+        )}`,
+      ),
+    );
+  }
+
+  return Right(Nothing);
+};
 
 const pullLatestDataset = (): Either<Error, typeof Nothing> => {
   console.log('Pulling latest changes to datasets.');
@@ -164,8 +192,15 @@ const commitChanges = (): Either<Error, typeof Nothing> => {
 // worrying about things like duplicates, git conflicts, etc., this seems like
 // the easier approach for now.
 
-const { channelId, playlistId, callbackUrl, videosFilename, reviewsFilename } =
-  getConfig().unsafeCoerce();
+const {
+  channelId,
+  playlistId,
+  callbackUrl,
+  videosFilename,
+  reviewsFilename,
+  ghPat,
+} = getConfig().unsafeCoerce();
+cloneDataset(ghPat).unsafeCoerce();
 const service = getAPIKey().map(getService).unsafeCoerce();
 const secret = randomBytes(48).toString('hex');
 
