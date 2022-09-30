@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import { readFileSync } from 'fs';
 import {
   spawnSync,
@@ -28,6 +27,7 @@ const getConfig = (): Either<
     videosFilename: string;
     reviewsFilename: string;
     ghPat: string;
+    secret: string;
   }
 > =>
   Right({})
@@ -72,6 +72,13 @@ const getConfig = (): Either<
         process.env.GH_PAT,
         Error('Missing env variable "GH_PAT"'),
       ),
+    )
+    .chain(
+      bindFalsyToEither(
+        'secret',
+        process.env.SECRET,
+        Error('Missing env variable "SECRET"'),
+      ),
     );
 
 const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
@@ -91,7 +98,7 @@ const cloneDataset = (ghPat: string): Either<Error, typeof Nothing> => {
   if (child.status !== 0) {
     return Left(
       Error(
-        `An error occurred setting up git and cloning the dataset: ${logChild(
+        `An error occurred setting up git and cloning the dataset:\n${logChild(
           child,
         )}`,
       ),
@@ -198,10 +205,10 @@ const {
   videosFilename,
   reviewsFilename,
   ghPat,
+  secret,
 } = getConfig().unsafeCoerce();
 cloneDataset(ghPat).unsafeCoerce();
 const service = getAPIKey().map(getService).unsafeCoerce();
-const secret = randomBytes(48).toString('hex');
 
 const notifier = new Notifier({
   hubCallback: callbackUrl,
