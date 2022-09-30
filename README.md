@@ -1,4 +1,4 @@
-# fantano-reviews (WIP)
+# fantano-reviews
 
 This is a project originally for DS2500 at NEU, encompassing the generation of a dataset containing
 all (or as many as my parser can recognize) music reviews with ratings by Anthony Fantano
