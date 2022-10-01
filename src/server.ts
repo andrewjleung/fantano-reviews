@@ -226,7 +226,7 @@ const subscribe = () => {
   );
 };
 
-subscribe();
+subscriber.on('listen', subscribe);
 
 subscriber.on('feed', (data: { feed: Buffer }) => {
   try {
