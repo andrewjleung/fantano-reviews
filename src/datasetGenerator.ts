@@ -15,7 +15,7 @@ const reviewToString = (review: Review): string =>
 const writeVideoDatasetJSON = (
   videos: youtube_v3.Schema$PlaylistItem[],
   outputFilename: string,
-): Either<Error, typeof Nothing> => {
+): Either<string, typeof Nothing> => {
   console.log(`Outputting all videos to ${outputFilename}`);
 
   return Either.encase(() => {
@@ -24,13 +24,13 @@ const writeVideoDatasetJSON = (
       flag: 'w',
     });
     return Nothing;
-  });
+  }).mapLeft((e) => e.message);
 };
 
 const writeReviewDatasetCSV = (
   videos: youtube_v3.Schema$PlaylistItem[],
   outputFilename: string,
-): Either<Error, typeof Nothing> => {
+): Either<string, typeof Nothing> => {
   console.log('Creating review dataset from videos');
 
   const reviews = parseReviews(videos);
@@ -49,14 +49,14 @@ const writeReviewDatasetCSV = (
       flag: 'w',
     });
     return Nothing;
-  });
+  }).mapLeft((e) => e.message);
 };
 
 export const generateDatasets = (
   service: youtube_v3.Youtube,
   videosFilename: string,
   reviewsFilename: string,
-): Promise<Either<Error, typeof Nothing>> =>
+): Promise<Either<string, typeof Nothing>> =>
   EitherAsync.fromPromise(() =>
     getAllPlaylistVideos(service)(THENEEDLEDROP_PLAYLIST_ID),
   )

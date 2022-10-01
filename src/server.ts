@@ -4,7 +4,15 @@ import {
   SpawnSyncOptionsWithStringEncoding,
   SpawnSyncReturns,
 } from 'child_process';
-import { always, Either, EitherAsync, Left, Nothing, Right } from 'purify-ts';
+import {
+  always,
+  Either,
+  EitherAsync,
+  Left,
+  Nothing,
+  Right,
+  string,
+} from 'purify-ts';
 import dotenv from 'dotenv';
 import { bindFalsyToEither } from './purifyUtils';
 import { generateDatasets } from './datasetGenerator';
@@ -12,14 +20,15 @@ import { getAPIKey, getService } from './auth';
 import { youtube_v3 } from 'googleapis';
 import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
-import Notifier from '@daangamesdg/youtube-notifications';
+import pubSubHubBub from 'pubsubhubbub';
+import { XMLParser } from 'fast-xml-parser';
 
 const DEFAULT_PORT = 8080;
 
 dotenv.config();
 
 const getConfig = (): Either<
-  Error,
+  string,
   {
     channelId: string;
     playlistId: string;
@@ -35,49 +44,49 @@ const getConfig = (): Either<
       bindFalsyToEither(
         'channelId',
         process.env.THENEEDLEDROP_CHANNEL_ID,
-        Error('Missing env variable "THENEEDLEDROP_CHANNEL_ID".'),
+        'Missing env variable "THENEEDLEDROP_CHANNEL_ID".',
       ),
     )
     .chain(
       bindFalsyToEither(
         'playlistId',
         process.env.THENEEDLEDROP_PLAYLIST_ID,
-        Error('Missing env variable "THENEEDLEDROP_PLAYLIST_ID".'),
+        'Missing env variable "THENEEDLEDROP_PLAYLIST_ID".',
       ),
     )
     .chain(
       bindFalsyToEither(
         'callbackUrl',
         process.env.CALLBACK_URL,
-        Error('Missing env variable "CALLBACK_URL"'),
+        'Missing env variable "CALLBACK_URL"',
       ),
     )
     .chain(
       bindFalsyToEither(
         'videosFilename',
         process.env.VIDEOS_FILENAME,
-        Error('Missing env variable "VIDEOS_FILENAME".'),
+        'Missing env variable "VIDEOS_FILENAME".',
       ),
     )
     .chain(
       bindFalsyToEither(
         'reviewsFilename',
         process.env.REVIEWS_FILENAME,
-        Error('Missing env variable "REVIEWS_FILENAME"'),
+        'Missing env variable "REVIEWS_FILENAME"',
       ),
     )
     .chain(
       bindFalsyToEither(
         'ghPat',
         process.env.GH_PAT,
-        Error('Missing env variable "GH_PAT"'),
+        'Missing env variable "GH_PAT"',
       ),
     )
     .chain(
       bindFalsyToEither(
         'secret',
         process.env.SECRET,
-        Error('Missing env variable "SECRET"'),
+        'Missing env variable "SECRET"',
       ),
     );
 
@@ -89,7 +98,7 @@ const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
 const logChild = (child: SpawnSyncReturns<string>) =>
   JSON.stringify(child, null, 2);
 
-const cloneDataset = (ghPat: string): Either<Error, typeof Nothing> => {
+const cloneDataset = (ghPat: string): Either<string, typeof Nothing> => {
   console.log('Setting up git and cloning dataset.');
   const child = spawnSync('./scripts/setup-git.sh', [ghPat], {
     ...spawnOptions,
@@ -97,18 +106,16 @@ const cloneDataset = (ghPat: string): Either<Error, typeof Nothing> => {
 
   if (child.status !== 0) {
     return Left(
-      Error(
-        `An error occurred setting up git and cloning the dataset:\n${logChild(
-          child,
-        )}`,
-      ),
+      `An error occurred setting up git and cloning the dataset:\n${logChild(
+        child,
+      )}`,
     );
   }
 
   return Right(Nothing);
 };
 
-const pullLatestDataset = (): Either<Error, typeof Nothing> => {
+const pullLatestDataset = (): Either<string, typeof Nothing> => {
   console.log('Pulling latest changes to datasets.');
   const child = spawnSync('git', ['pull'], {
     ...spawnOptions,
@@ -117,11 +124,9 @@ const pullLatestDataset = (): Either<Error, typeof Nothing> => {
 
   if (child.status !== 0) {
     return Left(
-      Error(
-        `An error occurred pulling latest changes for the dataset:\n${logChild(
-          child,
-        )}`,
-      ),
+      `An error occurred pulling latest changes for the dataset:\n${logChild(
+        child,
+      )}`,
     );
   }
 
@@ -131,16 +136,14 @@ const pullLatestDataset = (): Either<Error, typeof Nothing> => {
 const checkForDuplicateVideo = (
   videoId: string,
   videosFilename: string,
-): Either<Error, string> => {
+): Either<string, string> => {
   const allVideoIds = JSON.parse(
     readFileSync(`./tnd-reviews/${videosFilename}`, 'utf-8'),
   );
 
   if (!Array.isArray(allVideoIds)) {
     return Left(
-      Error(
-        `Video ids are not in an array. Please check the \`${videosFilename}\` file.`,
-      ),
+      `Video ids are not in an array. Please check the \`${videosFilename}\` file.`,
     );
   }
 
@@ -152,7 +155,7 @@ const checkForDuplicateVideo = (
   // ignored, using the videos JSON dataset to determine what videos have
   // already been processed.
   if (videoIds.includes(videoId)) {
-    return Left(Error(`Video ${videoId} has already been processed.`));
+    return Left(`Video ${videoId} has already been processed.`);
   }
 
   return Right(videoId);
@@ -162,29 +165,25 @@ const checkForReview = async (
   service: youtube_v3.Youtube,
   playlistId: string,
   videoId: string,
-): Promise<Either<Error, typeof Nothing>> => {
+): Promise<Either<string, typeof Nothing>> => {
   const video = await getVideo(service)(playlistId, videoId);
 
   return video
     .map(isReview)
     .chain((isReview) =>
-      isReview
-        ? Right(Nothing)
-        : Left(Error(`Video ${videoId} is not a review.`)),
+      isReview ? Right(Nothing) : Left(`Video ${videoId} is not a review.`),
     );
 };
 
-const commitChanges = (): Either<Error, typeof Nothing> => {
+const commitChanges = (): Either<string, typeof Nothing> => {
   console.log('Committing changes to datasets.');
   const child = spawnSync('./scripts/commit.sh', spawnOptions);
 
   if (child.status !== 0) {
     return Left(
-      Error(
-        `An error occurred committing changes to the dataset:\n${logChild(
-          child,
-        )}`,
-      ),
+      `An error occurred committing changes to the dataset:\n${logChild(
+        child,
+      )}`,
     );
   }
 
@@ -207,17 +206,29 @@ const {
   ghPat,
   secret,
 } = getConfig().unsafeCoerce();
-cloneDataset(ghPat).unsafeCoerce();
+cloneDataset(ghPat);
 const service = getAPIKey().map(getService).unsafeCoerce();
 
-const notifier = new Notifier({
-  hubCallback: callbackUrl,
-  port: Number(process.env.PORT || DEFAULT_PORT),
+const subscriber = pubSubHubBub.createServer({
+  callbackUrl,
+  // secret,
 });
 
-notifier.setup();
+const subscribe = () => {
+  subscriber.subscribe(
+    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
+    'https://pubsubhubbub.appspot.com/',
+    (err: unknown) => {
+      if (err) {
+        console.log(`Failed to subscribe to hub\n${err}`);
+      }
+    },
+  );
+};
 
-notifier.on('notified', (data) => {
+subscribe();
+
+subscriber.on('feed', (data: { feed: Buffer }) => {
   try {
     console.log('Notification received!');
     console.log(data);
@@ -225,21 +236,26 @@ notifier.on('notified', (data) => {
     // Resubscribe. Trusting that Fantano uploads more frequently than the max
     // lease length, this will stay subscribed. Obviously, a cron job of some
     // sort or regularly restarting the server will do a better job here.
-    notifier.subscribe(channelId);
+    subscribe();
+
+    const parser = new XMLParser();
+    const parsed = parser.parse(data.feed);
+    const videoId = string.decode(parsed.feed.entry['yt:videoId']);
+    console.log(parsed);
 
     EitherAsync.liftEither(
       pullLatestDataset()
-        .map(always(data.video.id))
+        .chain(always(videoId))
         .chain((videoId) => checkForDuplicateVideo(videoId, videosFilename)),
     )
-      .chain(() => checkForReview(service, playlistId, data.video.id))
+      .chain((videoId) => checkForReview(service, playlistId, videoId))
       .chain(() => generateDatasets(service, videosFilename, reviewsFilename))
       .chain(() => EitherAsync.liftEither(commitChanges()))
       .run()
       .then((value) =>
         value.caseOf({
           Left: (e) => {
-            console.error(e.message);
+            console.error(e);
           },
           Right: () => {
             console.log('Successfully updated dataset.');
@@ -251,11 +267,9 @@ notifier.on('notified', (data) => {
   }
 });
 
-notifier.on('subscribe', () => {
+subscriber.on('subscribe', () => {
   console.log('Subscribed!');
 });
-
-notifier.subscribe(channelId);
 
 console.log(
   `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
@@ -264,3 +278,5 @@ console.log(
     `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
   )}&hub.secret=${secret}`,
 );
+
+subscriber.listen(Number(process.env.PORT || DEFAULT_PORT));

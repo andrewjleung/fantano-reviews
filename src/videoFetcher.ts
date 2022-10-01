@@ -9,7 +9,7 @@ const MAX_PAGE_SIZE = 50;
 
 export const getNumPlaylistVideos =
   (service: youtube_v3.Youtube) =>
-  async (playlistId: string): Promise<Either<Error, number>> => {
+  async (playlistId: string): Promise<Either<string, number>> => {
     const response = await service.playlists.list(
       {
         id: [playlistId],
@@ -22,9 +22,7 @@ export const getNumPlaylistVideos =
       .chain(List.head)
       .chainNullable((value) => value.contentDetails?.itemCount)
       .toEither(
-        Error(
-          `Unable to retrieve number of playlist videos from playlist ${playlistId}`,
-        ),
+        `Unable to retrieve number of playlist videos from playlist ${playlistId}`,
       );
   };
 
@@ -38,7 +36,7 @@ const getPlaylistPage =
   async (
     playlistId: string,
     pageToken?: string,
-  ): Promise<Either<Error, PlaylistPageWithNextPageToken>> => {
+  ): Promise<Either<string, PlaylistPageWithNextPageToken>> => {
     const response = await service.playlistItems.list(
       {
         playlistId,
@@ -55,11 +53,9 @@ const getPlaylistPage =
         maybeNextPageToken: maybeOf(response.data.nextPageToken),
       }))
       .toEither(
-        Error(
-          pageToken === undefined
-            ? `Unable to fetch first page from playlist ${playlistId}`
-            : `Unable to fetch page ${pageToken} from playlist ${playlistId}`,
-        ),
+        pageToken === undefined
+          ? `Unable to fetch first page from playlist ${playlistId}`
+          : `Unable to fetch page ${pageToken} from playlist ${playlistId}`,
       );
   };
 
@@ -67,7 +63,7 @@ export const getAllPlaylistVideos =
   (service: youtube_v3.Youtube) =>
   async (
     playlistId: string,
-  ): Promise<Either<Error, youtube_v3.Schema$PlaylistItem[]>> => {
+  ): Promise<Either<string, youtube_v3.Schema$PlaylistItem[]>> => {
     // TODO: Right now logging is always on. It should be configurable.
     console.log('Fetching all theneedledrop videos...');
 
@@ -86,7 +82,7 @@ export const getAllPlaylistVideos =
       playlistId: string,
       acc: youtube_v3.Schema$PlaylistItem[],
       pageToken?: string,
-    ): Promise<Either<Error, youtube_v3.Schema$PlaylistItem[]>> => {
+    ): Promise<Either<string, youtube_v3.Schema$PlaylistItem[]>> => {
       const eitherPageOrError = EitherAsync.fromPromise(() =>
         getPlaylistPage(service)(playlistId, pageToken),
       );
@@ -113,7 +109,7 @@ export const getVideo =
   async (
     playlistId: string,
     videoId: string,
-  ): Promise<Either<Error, youtube_v3.Schema$PlaylistItem>> => {
+  ): Promise<Either<string, youtube_v3.Schema$PlaylistItem>> => {
     const response = await service.playlistItems.list({
       part: ['contentDetails', 'snippet'],
       playlistId,
@@ -123,6 +119,6 @@ export const getVideo =
     return maybeOf(response.data.items)
       .chain(List.head)
       .toEither(
-        Error(`Unable to fetch video ${videoId} from playlist ${playlistId}.`),
+        `Unable to fetch video ${videoId} from playlist ${playlistId}.`,
       );
   };

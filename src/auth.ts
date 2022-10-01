@@ -1,9 +1,9 @@
 import { Either, Maybe } from 'purify-ts';
 import { google, youtube_v3 } from 'googleapis';
 
-export const getAPIKey = (): Either<Error, string> =>
+export const getAPIKey = (): Either<string, string> =>
   Maybe.fromFalsy(process.env.YTV3_API_KEY).toEither(
-    Error('No API key supplied for the YouTube V3 API.'),
+    'No API key supplied for the YouTube V3 API.',
   );
 
 export const getService = (apiKey: string): youtube_v3.Youtube => {
