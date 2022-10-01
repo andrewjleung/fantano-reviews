@@ -213,7 +213,6 @@ const service = getAPIKey().map(getService).unsafeCoerce();
 const notifier = new Notifier({
   hubCallback: callbackUrl,
   port: Number(process.env.PORT || DEFAULT_PORT),
-  secret,
 });
 
 notifier.setup();
