@@ -4,6 +4,12 @@ This is a project originally for DS2500 at NEU, encompassing the generation of a
 all (or as many as my parser can recognize) music reviews with ratings by Anthony Fantano
 ([theneedledrop](https://www.youtube.com/user/theneedledrop)) on YouTube.
 
+Now, this repository contains code both for dataset generation along with a
+[PubSubHubbub](https://github.com/pubsubhubbub/) callback server which responds to push
+notifications whenever Fantano uploads or modifies a video (see docs
+[here](https://developers.google.com/youtube/v3/guides/push_notifications)), refreshing a dataset
+hosted at [andrewjleung/tnd-reviews](https://github.com/andrewjleung/tnd-reviews).
+
 ## Dataset Generation
 
 To generate an updated dataset, you will first need to generate an API key for the [YouTube Data
@@ -27,11 +33,3 @@ Finally, you can fetch and generate an updated review dataset with the following
 ```python
 npm run generate-datasets
 ```
-
-## Callback Server
-
-This repository also contains code for a [PubSubHubbub](https://github.com/pubsubhubbub/) callback
-server within the `server` directory. This server responds to push notifications whenever Fantano
-uploads or modifies a video
-(see docs [here](https://developers.google.com/youtube/v3/guides/push_notifications)), refreshing a
-dataset hosted here: [andrewjleung/tnd-reviews](https://github.com/andrewjleung/tnd-reviews).
