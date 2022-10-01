@@ -211,7 +211,7 @@ const service = getAPIKey().map(getService).unsafeCoerce();
 
 const subscriber = pubSubHubBub.createServer({
   callbackUrl,
-  // secret,
+  secret,
 });
 
 const subscribe = () => {
