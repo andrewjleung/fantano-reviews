@@ -5,13 +5,11 @@ import {
   SpawnSyncReturns,
 } from 'child_process';
 import { youtube_v3 } from 'googleapis';
-import { Either, Left, Nothing, Right, string } from 'purify-ts';
+import { Either, EitherAsync, Left, Nothing, Right, string } from 'purify-ts';
 import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
-import { XMLParser } from 'fast-xml-parser';
 import { Config } from './config';
 import { generateDatasets } from './datasetGenerator';
-import { liftE } from './purifyUtils';
 
 const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
   encoding: 'utf-8',
@@ -121,15 +119,15 @@ const commitChanges = (): Either<string, typeof Nothing> => {
 // the easier approach for now.
 
 const getNotificationProcessor = (
-  parser: XMLParser,
-  subscriber: { subscribe: () => void },
   service: youtube_v3.Youtube,
   config: Config,
+  subscribe: () => void,
 ) => {
   const { playlistId, videosFilename, reviewsFilename, ghPat } = config;
   cloneDataset(ghPat);
 
-  return (notification: { feed: Buffer }) => {
+  // TODO: remove any
+  return (notification: any) => {
     try {
       console.log('Notification received!');
       console.log(notification);
@@ -137,21 +135,20 @@ const getNotificationProcessor = (
       // Resubscribe. Trusting that Fantano uploads more frequently than the max
       // lease length, this will stay subscribed. Obviously, a cron job of some
       // sort or regularly restarting the server will do a better job here.
-      subscriber.subscribe();
+      subscribe();
 
-      const parsed = parser.parse(notification.feed);
       const videoId = string
-        .decode(parsed.feed.entry['yt:videoId'])
+        .decode(notification.feed.entry['yt:videoId'])
         .unsafeCoerce();
 
-      console.log(parsed);
+      const lift = EitherAsync.liftEither;
 
-      liftE(Right(Nothing))()
-        .chain(liftE(pullLatestDataset()))
-        .chain(liftE(checkDuplicateVideo(videoId, videosFilename)))
+      lift(Right(Nothing))
+        .chain(() => lift(pullLatestDataset()))
+        .chain(() => lift(checkDuplicateVideo(videoId, videosFilename)))
         .chain(() => checkForReview(service, playlistId, videoId))
         .chain(() => generateDatasets(service, videosFilename, reviewsFilename))
-        .chain(liftE(commitChanges()))
+        .chain(() => lift(commitChanges()))
         .run()
         .then((value) =>
           value.caseOf({

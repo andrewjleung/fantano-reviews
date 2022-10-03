@@ -1,71 +1,42 @@
 import { getAPIKey, getService } from './auth';
-import { createServer } from 'pubsubhubbub';
+import { makeServer, makeSubscribe } from './pubsubhubbub';
 import getConfig from './config';
 import getNotificationProcessor from './processNotification';
-import { XMLParser } from 'fast-xml-parser';
 
 const DEFAULT_PORT = 8080;
 const MAX_LEASE_S = 828000;
-const HUB = 'https://pubsubhubbub.appspot.com/subscribe';
+const HUB = 'https://pubsubhubbub.appspot.com';
+const HOST = '0.0.0.0';
 
 const config = getConfig().unsafeCoerce();
-const { callbackUrl, secret } = config;
+const { callbackUrl, secret, channelId } = config;
+const topic = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`;
 const service = getAPIKey().map(getService).unsafeCoerce();
 
-const subscriber = createServer({
-  callbackUrl,
-  leaseSeconds: MAX_LEASE_S,
-  secret,
-});
-
-const subscribe = () => {
-  subscriber.subscribe(
-    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-    HUB,
-    (err: unknown) => {
-      if (err) {
-        console.log(`Failed to subscribe to hub\n${err}`);
-      }
-    },
-  );
-};
-
-subscriber.subscribe = subscribe;
-
-const parser = new XMLParser();
+const subscribe = makeSubscribe(HUB, callbackUrl, topic, MAX_LEASE_S, secret);
 
 const processNotification = getNotificationProcessor(
-  parser,
-  subscriber,
   service,
   config,
+  subscribe,
 );
 
-subscriber.on('listen', () => {
-  console.log('Callback server listening!');
-  subscribe();
+const server = makeServer({
+  topic: topic,
+  onData: processNotification,
 });
 
-subscriber.on('denied', (data: unknown) => {
-  console.log(`Subscription has been denied:\n${data}`);
-});
-
-subscriber.on('error', (data: unknown) => {
-  console.log(`An error has occurred:\n${data}`);
-});
-
-subscriber.on('feed', processNotification);
-
-subscriber.on('subscribe', () => {
-  console.log('Subscribed!');
-});
+subscribe();
 
 console.log(
-  `Debug publishing here:\nhttps://pubsubhubbub.appspot.com/subscription-details?hub.callback=${encodeURIComponent(
+  `Debug publishing here:\n${HUB}/subscription-details?hub.callback=${encodeURIComponent(
     callbackUrl,
-  )}&hub.topic=${encodeURIComponent(
-    `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-  )}&hub.secret=${encodeURIComponent(secret)}`,
+  )}&hub.topic=${encodeURIComponent(topic)}&hub.secret=${encodeURIComponent(
+    secret,
+  )}`,
 );
 
-subscriber.listen(Number(process.env.PORT || DEFAULT_PORT));
+server.listen({
+  port: Number(process.env.PORT || DEFAULT_PORT),
+  host: HOST,
+});

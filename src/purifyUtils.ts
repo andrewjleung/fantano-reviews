@@ -32,8 +32,3 @@ export const bindFalsyToEither = <N extends string, A extends object, L, R>(
   error: L,
 ): ((acc: A) => Either<L, A & Record<N, R>>) =>
   bindE(name, () => Maybe.fromFalsy(nullable).toEither(error));
-
-export const liftE =
-  <L, R>(either: Either<L, R>) =>
-  () =>
-    EitherAsync.liftEither(either);
