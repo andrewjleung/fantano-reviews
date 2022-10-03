@@ -276,7 +276,7 @@ console.log(
     callbackUrl,
   )}&hub.topic=${encodeURIComponent(
     `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-  )}&hub.secret=${secret}`,
+  )}&hub.secret=${encodeURIComponent(secret)}`,
 );
 
 subscriber.listen(Number(process.env.PORT || DEFAULT_PORT));
