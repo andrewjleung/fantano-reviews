@@ -20,10 +20,12 @@ import { getAPIKey, getService } from './auth';
 import { youtube_v3 } from 'googleapis';
 import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
-import pubSubHubBub from 'pubsubhubbub';
+import { createServer } from 'pubsubhubbub';
 import { XMLParser } from 'fast-xml-parser';
 
 const DEFAULT_PORT = 8080;
+const MAX_LEASE_S = 828000;
+const HUB = 'https://pubsubhubbub.appspot.com/subscribe';
 
 dotenv.config();
 
@@ -209,15 +211,16 @@ const {
 cloneDataset(ghPat);
 const service = getAPIKey().map(getService).unsafeCoerce();
 
-const subscriber = pubSubHubBub.createServer({
+const subscriber = createServer({
   callbackUrl,
+  leaseSeconds: MAX_LEASE_S,
   secret,
 });
 
 const subscribe = () => {
   subscriber.subscribe(
     `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`,
-    'https://pubsubhubbub.appspot.com/',
+    HUB,
     (err: unknown) => {
       if (err) {
         console.log(`Failed to subscribe to hub\n${err}`);
@@ -226,7 +229,18 @@ const subscribe = () => {
   );
 };
 
-subscriber.on('listen', subscribe);
+subscriber.on('listen', () => {
+  console.log('Callback server listening!');
+  subscribe();
+});
+
+subscriber.on('denied', (data: unknown) => {
+  console.log(`Subscription has been denied:\n${data}`);
+});
+
+subscriber.on('error', (data: unknown) => {
+  console.log(`An error has occurred:\n${data}`);
+});
 
 subscriber.on('feed', (data: { feed: Buffer }) => {
   try {
