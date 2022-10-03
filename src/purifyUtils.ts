@@ -1,4 +1,4 @@
-import { Either, Maybe } from 'purify-ts';
+import { Either, EitherAsync, Maybe } from 'purify-ts';
 
 export const maybeOf = Maybe.fromNullable;
 
@@ -32,3 +32,8 @@ export const bindFalsyToEither = <N extends string, A extends object, L, R>(
   error: L,
 ): ((acc: A) => Either<L, A & Record<N, R>>) =>
   bindE(name, () => Maybe.fromFalsy(nullable).toEither(error));
+
+export const liftE =
+  <L, R>(either: Either<L, R>) =>
+  () =>
+    EitherAsync.liftEither(either);
