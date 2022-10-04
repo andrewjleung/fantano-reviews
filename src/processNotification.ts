@@ -5,7 +5,15 @@ import {
   SpawnSyncReturns,
 } from 'child_process';
 import { youtube_v3 } from 'googleapis';
-import { Either, EitherAsync, Left, Nothing, Right, string } from 'purify-ts';
+import {
+  Codec,
+  Either,
+  EitherAsync,
+  Left,
+  Nothing,
+  Right,
+  string,
+} from 'purify-ts';
 import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
 import { Config } from './config';
@@ -111,6 +119,14 @@ const commitChanges = (): Either<string, typeof Nothing> => {
   return Right(Nothing);
 };
 
+const Notification = Codec.interface({
+  feed: Codec.interface({
+    entry: Codec.interface({
+      'yt:videoId': string,
+    }),
+  }),
+});
+
 // TODO: Yes, this is wasteful in that the entire dataset is regenerated
 // whenever there's a new video. However, considering Fantano's upload frequency
 // and the number of videos he has, it is relatively inexpensive and scales very
@@ -127,7 +143,7 @@ const getNotificationProcessor = (
   cloneDataset(ghPat);
 
   // TODO: remove any
-  return (notification: any) => {
+  return (notification: unknown) => {
     try {
       console.log('Notification received!');
       console.log(notification);
@@ -137,8 +153,8 @@ const getNotificationProcessor = (
       // sort or regularly restarting the server will do a better job here.
       subscribe();
 
-      const videoId = string
-        .decode(notification.feed.entry['yt:videoId'])
+      const videoId = Notification.decode(notification)
+        .map((notif) => notif.feed.entry['yt:videoId'])
         .unsafeCoerce();
 
       const lift = EitherAsync.liftEither;
