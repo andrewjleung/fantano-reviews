@@ -67,7 +67,9 @@ export const makeServer = ({ topic, onData, secret }: PubSubHubBubConfig) => {
     logger: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.register(fastifyXMLBodyParser);
+  server.register(fastifyXMLBodyParser, {
+    contentType: 'application/atom+xml',
+  });
 
   server.get(
     '/',

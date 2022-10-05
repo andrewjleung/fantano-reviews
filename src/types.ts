@@ -1,4 +1,5 @@
 import { Static, Type } from '@sinclair/typebox';
+import { XML_CONTENT_TYPES } from './pubsubhubbub';
 
 export type Review = {
   artist: string;
@@ -30,7 +31,7 @@ export type GetResponseQuery = Static<typeof GetResponseQuery>;
 
 export const ContentDistributionRequestHeaders = Type.Object({
   'X-Hub-Signature': Type.Optional(Type.String()),
-  'Content-Type': Type.Literal('application/xml'),
+  'Content-Type': Type.Literal('application/atom+xml'),
   Link: Type.String(),
 });
 

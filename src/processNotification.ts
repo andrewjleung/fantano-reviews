@@ -154,7 +154,7 @@ const getNotificationProcessor = (
       subscribe();
 
       const videoId = Notification.decode(notification)
-        .map((notif) => notif.feed.entry['yt:videoId'])
+        .map((notification) => notification.feed.entry['yt:videoId'])
         .unsafeCoerce();
 
       const lift = EitherAsync.liftEither;
