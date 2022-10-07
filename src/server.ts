@@ -21,7 +21,7 @@ const processNotification = getNotificationProcessor(
   subscribe,
 );
 
-const server = makeServer({
+const server = await makeServer({
   topic: topic,
   onData: processNotification,
 });

@@ -9,6 +9,8 @@ import {
   PubSubHubBubConfig,
 } from './types';
 import fastifyXMLBodyParser from 'fastify-xml-body-parser';
+import fastifyExpress from '@fastify/express';
+import expressQueue from 'express-queue';
 
 const isSignatureCorrect = (
   signature: string,
@@ -62,14 +64,22 @@ export const makeSubscribe =
     return got.post(hubUrl, options);
   };
 
-export const makeServer = ({ topic, onData, secret }: PubSubHubBubConfig) => {
+export const makeServer = async ({
+  topic,
+  onData,
+  secret,
+}: PubSubHubBubConfig) => {
   const server = Fastify({
     logger: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.register(fastifyXMLBodyParser, {
-    contentType: 'application/atom+xml',
-  });
+  await server
+    .register(fastifyXMLBodyParser, {
+      contentType: 'application/atom+xml',
+    })
+    .register(fastifyExpress);
+
+  server.use(expressQueue({ activeLimit: 2, queuedLimit: -1 }));
 
   server.get(
     '/',

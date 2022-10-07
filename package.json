@@ -20,9 +20,11 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
+    "@fastify/express": "^2.0.2",
     "@fastify/type-provider-typebox": "^2.3.0",
     "@sinclair/typebox": "^0.24.44",
     "dotenv": "^16.0.2",
+    "express-queue": "^0.0.13",
     "fastify": "^4.7.0",
     "fastify-xml-body-parser": "^2.1.1",
     "google-auth-library": "^8.5.2",
