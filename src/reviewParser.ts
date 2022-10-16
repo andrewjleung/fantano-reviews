@@ -259,7 +259,7 @@ export const parseReview = (
           })),
         )
         .chain(bindE('rating', () => getRating(description)))
-        .chain(bindE('genres', () => Right(getGenres(description).join(';')))),
+        .chain(bindE('genres', () => Right(getGenres(description)))),
     );
 
 /**

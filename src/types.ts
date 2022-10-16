@@ -1,11 +1,10 @@
 import { Static, Type } from '@sinclair/typebox';
-import { XML_CONTENT_TYPES } from './pubsubhubbub';
 
 export type Review = {
   artist: string;
   title: string;
   rating: number;
-  genres: string;
+  genres: string[];
   publishedAt: string;
 };
 

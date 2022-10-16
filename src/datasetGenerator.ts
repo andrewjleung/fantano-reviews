@@ -8,9 +8,13 @@ import { Either, EitherAsync, Nothing, Right } from 'purify-ts';
 const THENEEDLEDROP_PLAYLIST_ID = 'UUt7fwAhXDy3oNFTAzF2o8Pw';
 
 const reviewToString = (review: Review): string =>
-  Object.values(review)
-    .map((value) => value.toString())
-    .join(',');
+  [
+    review.publishedAt,
+    `"${review.artist}"`,
+    `"${review.title}"`,
+    `"${review.genres.join(';')}"`,
+    review.rating,
+  ].join(',');
 
 const writeVideoDatasetJSON = (
   videos: youtube_v3.Schema$PlaylistItem[],
