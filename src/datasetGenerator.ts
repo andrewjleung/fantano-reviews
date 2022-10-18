@@ -4,17 +4,15 @@ import { writeFileSync } from 'fs';
 import { Review } from './types';
 import { getAllPlaylistVideos } from './videoFetcher';
 import { Either, EitherAsync, Nothing, Right } from 'purify-ts';
+import { stringify } from 'csv-stringify/sync';
 
 const THENEEDLEDROP_PLAYLIST_ID = 'UUt7fwAhXDy3oNFTAzF2o8Pw';
 
-const reviewToString = (review: Review): string =>
-  [
-    review.publishedAt,
-    `"${review.artist}"`,
-    `"${review.title}"`,
-    `"${review.genres.join(';')}"`,
-    review.rating,
-  ].join(',');
+const reviewToRow = (review: Review) => ({
+  ...review,
+  rating: review.rating.toString(),
+  genres: review.genres.join(';'),
+});
 
 const writeVideoDatasetJSON = (
   videos: youtube_v3.Schema$PlaylistItem[],
@@ -44,11 +42,12 @@ const writeReviewDatasetCSV = (
     return Right(Nothing);
   }
 
-  const header = Object.keys(reviews[0]).join(',');
-  const body = reviews.map(reviewToString).join('\n');
+  const header = Object.keys(reviews[0]);
+  const body = reviews.map(reviewToRow).map(Object.values);
+  const csv = stringify([header, ...body]);
 
   return Either.encase(() => {
-    writeFileSync(outputFilename, `${header}\n${body}\n`, {
+    writeFileSync(outputFilename, csv, {
       encoding: 'utf-8',
       flag: 'w',
     });

@@ -23,6 +23,7 @@
     "@fastify/express": "^2.0.2",
     "@fastify/type-provider-typebox": "^2.3.0",
     "@sinclair/typebox": "^0.24.44",
+    "csv": "^6.2.1",
     "dotenv": "^16.0.2",
     "express-queue": "^0.0.13",
     "fastify": "^4.7.0",
