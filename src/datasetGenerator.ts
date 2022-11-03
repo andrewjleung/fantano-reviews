@@ -11,7 +11,7 @@ const THENEEDLEDROP_PLAYLIST_ID = 'UUt7fwAhXDy3oNFTAzF2o8Pw';
 const reviewToRow = (review: Review) => ({
   ...review,
   rating: review.rating.toString(),
-  genres: review.genres.join(';'),
+  genres: review.genres.join(';;'),
 });
 
 const writeVideoDatasetJSON = (
