@@ -82,7 +82,14 @@ const GENRE_REGEX = /(?:\/ ([^\/]+))$/;
 // aren't tagged with genres. This is by no means comprehensive, there may still
 // be some labels that don't get filtered out. The only downside here is that
 // some reviews may have genres that aren't actually genres.
-const LABELS = ['RECORDS', 'FORTUNA', 'DEAD OCEANS', 'PLUDERPHONICS', 'DOMINO'];
+const LABELS = [
+  'RECORDS',
+  'FORTUNA',
+  'DEAD OCEANS',
+  'PLUDERPHONICS',
+  'DOMINO',
+  'PGLANG',
+];
 
 /**
  * Determine whether the given video title matches the format of a "new" review.
@@ -165,7 +172,12 @@ const getGenres = (description: string): string[] => {
     .chain(List.head)
     .chainNullable((str) => str.match(GENRE_REGEX))
     .chain(List.at(1))
-    .map((genres) => genres.split(/, ?/).filter(isGenre).map(cleanGenre))
+    .map((genres) =>
+      genres
+        .split(/[,](?![^(]*\))/)
+        .filter(isGenre)
+        .map(cleanGenre),
+    )
     .orDefault([]);
 };
 
