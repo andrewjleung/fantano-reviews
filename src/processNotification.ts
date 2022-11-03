@@ -18,6 +18,7 @@ import { getVideo } from './videoFetcher';
 import { isReview } from './reviewParser';
 import { Config } from './config';
 import { generateDatasets } from './datasetGenerator';
+import got from 'got';
 
 const spawnOptions: SpawnSyncOptionsWithStringEncoding = {
   encoding: 'utf-8',
@@ -119,6 +120,16 @@ const commitChanges = (): Either<string, typeof Nothing> => {
   return Right(Nothing);
 };
 
+const purgeCDNCache = async (): Promise<Either<string, typeof Nothing>> => {
+  console.log('Purging CDN cache.');
+
+  return got(
+    'https://purge.jsdelivr.net/gh/andrewjleung/tnd-reviews@main/reviews.csv',
+  )
+    .then(() => Right(Nothing))
+    .catch(Left);
+};
+
 const Notification = Codec.interface({
   feed: Codec.interface({
     entry: Codec.interface({
@@ -165,6 +176,7 @@ const getNotificationProcessor = (
         .chain(() => checkForReview(service, playlistId, videoId))
         .chain(() => generateDatasets(service, videosFilename, reviewsFilename))
         .chain(() => lift(commitChanges()))
+        .chain(() => purgeCDNCache())
         .run()
         .then((value) =>
           value.caseOf({
