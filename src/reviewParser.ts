@@ -65,6 +65,14 @@ const EDGE_CASES = new Map([
   ],
 ]);
 
+// Genres that have typos in their descriptions.
+// This includes:
+// - Silver Mount Zion - Fuck Off Get Free We Pour Light On Everything
+const GENRE_EDGE_CASES = new Map([
+  ['"post-rock', 'post-rock'],
+  ['" art rock', 'art rock'],
+]);
+
 // Regex to match the genre and the artist's label in a review's description.
 const GENRES_WITH_LABEL_REGEX = /(?: [1-2][09][0-2][0-9]) (\/.*)/;
 
@@ -177,6 +185,9 @@ const getGenres = (description: string): string[] => {
         .split(/[,](?![^(]*\))/)
         .filter(isGenre)
         .map(cleanGenre),
+    )
+    .map((genres) =>
+      genres.map((genre) => GENRE_EDGE_CASES.get(genre) || genre),
     )
     .orDefault([]);
 };
