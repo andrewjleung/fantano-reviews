@@ -33,3 +33,10 @@ Finally, you can fetch and generate an updated review dataset with the following
 ```python
 npm run generate-datasets
 ```
+
+## TODO
+
+- [ ] Parse NOTGOOD reviews
+- [ ] Parse classic reviews
+- [ ] Parse "These albums are 10s" reviews (which somewhat overlap with classic reviews)
+- [ ] Reach review parity with AOTY
