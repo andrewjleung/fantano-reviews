@@ -14,7 +14,7 @@ const standardReview: StandardReview = {
   title: 'bar',
   rating: 1,
   genres: ['genre1', 'genre2'],
-  publishedAt: '2022-11-19',
+  publishedAt: '2022-11-19T01:00:01Z',
 };
 
 const classicReview: ClassicReview = {
@@ -22,7 +22,7 @@ const classicReview: ClassicReview = {
   artist: 'foo',
   title: 'bar',
   genres: ['genre1', 'genre2'],
-  publishedAt: '2022-11-19',
+  publishedAt: '2022-11-19T01:00:01Z',
 };
 
 const notGoodReview: NotGoodReview = {
@@ -30,7 +30,7 @@ const notGoodReview: NotGoodReview = {
   artist: 'foo',
   title: 'bar',
   genres: ['genre1', 'genre2'],
-  publishedAt: '2022-11-19',
+  publishedAt: '2022-11-19T01:00:01Z',
 };
 
 const tensReview: TensReview = {
@@ -40,7 +40,7 @@ const tensReview: TensReview = {
     { artist: 'foo1', title: 'bar1' },
     { artist: 'foo2', title: 'bar2' },
   ],
-  publishedAt: '2022-11-19',
+  publishedAt: '2022-11-19T01:00:01Z',
 };
 
 describe('collect', () => {
@@ -56,7 +56,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 1,
           genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
     ]);
@@ -71,7 +71,7 @@ describe('collect', () => {
           title: 'bar1',
           rating: 5,
           genres: ['genre3', 'genre4'],
-          publishedAt: '2022-11-20',
+          publishedAt: '2022-11-20T01:00:01Z',
         },
       ],
     ]);
@@ -85,7 +85,7 @@ describe('collect', () => {
           title: 'bar1',
           rating: 5,
           genres: ['genre3', 'genre4'],
-          publishedAt: '2022-11-20',
+          publishedAt: '2022-11-20T01:00:01Z',
         },
       ],
       [
@@ -95,7 +95,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 'CLASSIC',
           genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
     ]);
@@ -113,7 +113,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 'NOT GOOD',
           genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
     ]);
@@ -131,7 +131,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 10,
           genres: [],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
       [
@@ -141,7 +141,7 @@ describe('collect', () => {
           title: 'bar1',
           rating: 10,
           genres: [],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
       [
@@ -151,43 +151,13 @@ describe('collect', () => {
           title: 'bar2',
           rating: 10,
           genres: [],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
     ]);
   });
 
-  it('favors an existing review with a higher rating when merging', () => {
-    const rows = new Map<string, ReviewRow>([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 10,
-          genres: [],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-
-    collect(rows, standardReview);
-
-    expect([...rows]).toStrictEqual([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 10,
-          genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-  });
-
-  it('favors a new review with a higher rating when merging', () => {
+  it('favors an existing review if it is was published later', () => {
     const rows = new Map<string, ReviewRow>([
       [
         'foo::bar',
@@ -196,7 +166,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 0,
           genres: ['genre0'],
-          publishedAt: '2022-11-18',
+          publishedAt: '2022-11-19T01:00:02Z',
         },
       ],
     ]);
@@ -209,54 +179,24 @@ describe('collect', () => {
         {
           artist: 'foo',
           title: 'bar',
-          rating: 1,
+          rating: 0,
           genres: ['genre0', 'genre1', 'genre2'],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:02Z',
         },
       ],
     ]);
   });
 
-  it('favors an existing numeric review over a new classic review when merging', () => {
+  it('favors a new review if it was published later', () => {
     const rows = new Map<string, ReviewRow>([
       [
         'foo::bar',
         {
           artist: 'foo',
           title: 'bar',
-          rating: 10,
-          genres: ['genre1'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-
-    collect(rows, classicReview);
-
-    expect([...rows]).toStrictEqual([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 10,
-          genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-  });
-
-  it('favors a new numeric review over an existing classic review when merging', () => {
-    const rows = new Map<string, ReviewRow>([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 'CLASSIC',
+          rating: 0,
           genres: ['genre0'],
-          publishedAt: '2022-11-18',
+          publishedAt: '2022-11-19T01:00:00Z',
         },
       ],
     ]);
@@ -271,67 +211,7 @@ describe('collect', () => {
           title: 'bar',
           rating: 1,
           genres: ['genre0', 'genre1', 'genre2'],
-          publishedAt: '2022-11-19',
-        },
-      ],
-    ]);
-  });
-
-  it('favors an existing numeric review over a new not good review when merging', () => {
-    const rows = new Map<string, ReviewRow>([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 10,
-          genres: ['genre1'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-
-    collect(rows, notGoodReview);
-
-    expect([...rows]).toStrictEqual([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 10,
-          genres: ['genre1', 'genre2'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-  });
-
-  it('favors a new numeric review over an existing not good review when merging', () => {
-    const rows = new Map<string, ReviewRow>([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 'NOT GOOD',
-          genres: ['genre0'],
-          publishedAt: '2022-11-18',
-        },
-      ],
-    ]);
-
-    collect(rows, standardReview);
-
-    expect([...rows]).toStrictEqual([
-      [
-        'foo::bar',
-        {
-          artist: 'foo',
-          title: 'bar',
-          rating: 1,
-          genres: ['genre0', 'genre1', 'genre2'],
-          publishedAt: '2022-11-19',
+          publishedAt: '2022-11-19T01:00:01Z',
         },
       ],
     ]);
