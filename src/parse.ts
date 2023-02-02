@@ -2,6 +2,7 @@ import { Either, Left } from 'purify-ts';
 import {
   ClassicReview,
   NotGoodReview,
+  Review,
   StandardReview,
   TensReview,
   Video,
@@ -97,3 +98,11 @@ const parseTensReview = ({
 }: Video): Either<string, TensReview> => {
   return Left('Unimplemented.');
 };
+
+export default function parse({
+  title: videoTitle,
+  description,
+  publishedAt,
+}: Video): Either<string, Review> {
+  return Left('Unimplemented.');
+}

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx tsx ./src/server.ts",
     "generate-datasets": "npx tsx ./src/generateDatasets.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",

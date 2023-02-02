@@ -49,6 +49,7 @@ export type ReviewRowRating =
   | 9
   | 10
   | 'NOT GOOD'
+  | 'NOT BAD'
   | 'CLASSIC';
 
 type UnratedReview = {
@@ -63,7 +64,7 @@ export type ClassicReview = {
 } & UnratedReview;
 
 export type NotGoodReview = {
-  type: 'not-good';
+  type: 'not-good' | 'not-bad';
 } & UnratedReview;
 
 export type StandardReview = {
@@ -71,11 +72,17 @@ export type StandardReview = {
   rating: ReviewRowRating;
 } & UnratedReview;
 
+// TODO: Tens reviews are on Fantano's second channel. Fetch data from there and
+// parse it too.
 export type TensReview = {
   type: 'tens';
   albums: { artist: string; title: string }[];
   publishedAt: string;
 };
+
+// TODO: Support REDUX REVIEWs.
+// TODO: Add metadata for albums featured in greatest/worst lists.
+// TODO: Support multi-reviews (videos containing multiple individual reviews).
 
 export type Review =
   | StandardReview
